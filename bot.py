@@ -69,7 +69,7 @@ It is recommended to use slash commands and therefore not use prefix commands.
 
 If you want to use prefix commands, make sure to also enable the intent below in the Discord developer portal.
 """
-# intents.message_content = True
+intents.message_content = True
 
 bot = Bot(command_prefix=commands.when_mentioned_or(
     config["prefix"]), intents=intents, help_command=None)
@@ -207,7 +207,7 @@ async def on_command_error(context: Context, error) -> None:
 
 async def load_cogs() -> None:
     """
-    The code in this function is executed whenever the bot will start.
+    The code in this function is executed whenever the bot is started.
     """
     for file in os.listdir(f"./cogs"):
         if file.endswith(".py"):
