@@ -100,7 +100,7 @@ bot.db = connect_db()
 @bot.event
 async def on_ready() -> None:
     """
-    The code in this even is executed when the bot is ready
+    The code in this event is executed when the bot is ready
     """
     print(f"Logged in as {bot.user.name}")
     print(f"discord.py API version: {discord.__version__}")
@@ -199,6 +199,48 @@ async def on_command_error(context: Context, error) -> None:
             title="Error!",
             # We need to capitalize because the command arguments have no capital letter in the code.
             description=str(error).capitalize(),
+            color=0xE02B2B
+        )
+        await context.send(embed=embed)
+    elif isinstance(error, exceptions.BadLongFormat):
+        embed = discord.Embed(
+            title="Error!",
+            description="Make sure you specify target and stoploss are correctly for LONG position.",
+            color=0xE02B2B
+        )
+        await context.send(embed=embed)
+    elif isinstance(error, exceptions.BadShortFormat):
+        embed = discord.Embed(
+            title="Error!",
+            description="Make sure you specify target and stoploss are correctly for LONG position.",
+            color=0xE02B2B
+        )
+        await context.send(embed=embed)
+    elif isinstance(error, exceptions.InvalidOrUnavailableCoin):
+        embed = discord.Embed(
+            title="Error!",
+            description="The specified coin is either invalid or unavailable.",
+            color=0xE02B2B
+        )
+        await context.send(embed=embed)
+    elif isinstance(error, exceptions.InvalidId):
+        embed = discord.Embed(
+            title="Error!",
+            description="The specified id is either invalid or unavailable.",
+            color=0xE02B2B
+        )
+        await context.send(embed=embed)
+    elif isinstance(error, exceptions.IdNotFound):
+        embed = discord.Embed(
+            title="Error!",
+            description="The specified id was not found.",
+            color=0xE02B2B
+        )
+        await context.send(embed=embed)
+    elif isinstance(error, exceptions.UserNotAllowed):
+        embed = discord.Embed(
+            title="Error!",
+            description="Are you sure you own this trade?",
             color=0xE02B2B
         )
         await context.send(embed=embed)
