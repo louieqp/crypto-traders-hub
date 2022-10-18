@@ -60,7 +60,7 @@ class InvalidId(commands.CommandError):
 
 class IdNotFound(commands.CommandError):
     """
-    Thrown when user sends a bad long format.
+    Thrown when user sends a bad trade id.
     """
     def __init__(self, message="The specified id was not found."):
         self.message = message
@@ -71,6 +71,14 @@ class UserNotAllowed(commands.CommandError):
     Thrown when user sends a bad long format.
     """
     def __init__(self, message="Are you sure you own this trade?"):
+        self.message = message
+        super().__init__(self.message)
+
+class InvalidArgument(commands.CommandError):
+    """
+    Thrown when user sends an invalid argument.
+    """
+    def __init__(self, message="Invalid argument."):
         self.message = message
         super().__init__(self.message)
 

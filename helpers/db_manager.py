@@ -121,7 +121,11 @@ def get_all_trades() -> list:
 
     return 
 
-def hard_reset() -> int:
+def hard_reset() -> None:
     """
     This function will wipe the data from the database.
     """
+    connection = sqlite3.connect("database/database.db")
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM trades WHERE 1")
+    cursor.execute("DELETE FROM colsing_points WHERE 1")

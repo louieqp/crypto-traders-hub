@@ -19,18 +19,15 @@ import exceptions
 class Trader(commands.Cog, name="trade"):
     def __init__(self, bot):
         self.bot = bot
-
+    
     @commands.hybrid_command(
-        name="long",
-        description="Opens a BUY/LONG position."
+        name="open",
+        description="Opens a position."
     )
-    async def long(self, context: Context, coin: str, open_price: float, target: float, stoploss: float, leverage: int = 10, chart_url: str = '', vip: str = 'no') -> None:
-        # Input validation
-        if open_price > target or open_price < stoploss:
-            raise exceptions.BadLongFormat
-        elif not th.is_valid_coin(coin):
-            raise exceptions.InvalidOrUnavailableCoin
-
+    async def open(self, type: str, context: Context, coin: str, open_price: float, target: float, stoploss: float, leverage: int = 10, chart_url: str = '', vip: str = 'no'):
+        if str.upper(type) not in c.VALID_OPEN_ARGUMENTS:
+            raise exceptions.InvalidArgument('Got invalid open type argument.')
+        
         # Confirm signal
         msg = th.build_signal_message(coin, open_price, target, stoploss, 'long', leverage, chart_url, vip)
         confirm_msg = f"Please confirm your BUY/LONG position:\n {msg}"
@@ -40,13 +37,12 @@ class Trader(commands.Cog, name="trade"):
         message = await context.send(embed=embed, view=buttons)
         await buttons.wait()
         if buttons.confirmed:
-            trade_id = db_manager.open_trade(context.author.id, 'long', coin, open_price, target, stoploss, leverage, vip)
+            trade_id = await db_manager.open_trade(context.author.id, 'long', coin, open_price, target, stoploss, leverage, vip)
             if str.lower(vip) == 'y' or str.lower(vip) == 'yes':
                 channel_id = c.VIP_SIGNALS_CHANNEL
             else:
                 channel_id = c.PUBLIC_SIGNALS_CHANNEL
             signal_embed = th.get_signal_message(msg, 'long')
-            print(context.author.mention)
             signal_embed.set_author(name=context.author.display_name, icon_url=context.author.display_icon)
             channel = self.bot.get_channel(channel_id)
             await channel.send(embed=signal_embed)
@@ -54,6 +50,17 @@ class Trader(commands.Cog, name="trade"):
         else:
             embed = th.get_cancel_message_notification()
         await message.edit(embed=embed, view=None, content=None)
+
+    @commands.hybrid_command(
+        name="long",
+        description="Opens a BUY/LONG position."
+    )
+    async def __long(self, coin: str, open_price: float, target: float, stoploss: float, leverage: int = 10, chart_url: str = '', vip: str = 'no') -> None:
+        # Input validation for long position
+        if open_price > target or open_price < stoploss:
+            raise exceptions.BadLongFormat
+        elif not th.is_valid_coin(coin):
+            raise exceptions.InvalidOrUnavailableCoin
 
     @commands.hybrid_command(
         name="short",
