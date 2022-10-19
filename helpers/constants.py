@@ -9,6 +9,9 @@ VIP_SIGNALS_CHANNEL=1030915837550415942
 
 # TRADING
 VALID_OPEN_ARGUMENTS={'long', 'short'}
+VALID_VIP_ARGUMENTS={'yes', 'y', 'no', 'n'}
+YES_OPTIONS=['yes', 'y']
+TRADE_TYPE_STR = {'long': 'BUY/LONG', 'short': 'SELL/SHORT'}
 VALID_COINS={
     'BTC', 
     'XRP',

@@ -29,7 +29,42 @@ def open_trade(user_id: int, trade_type: str, coin: str, open_price: float, targ
     connection.close()
     return trade_id
 
-def close_trade(user_id: int, trade_id: int, close: float, closed_at: str) -> list:
+def set_initial_close_trade(trade_id: int, open_price: float) -> None:
+    """
+    This function updates the close price for a trade
+
+    :param user_id: The ID of the user that is closing the trade
+    :param trader_id: The ID of the trade to be closed
+    :param close: The price at which the trade was closed
+    """
+    connection = sqlite3.connect("database/database.db")
+    cursor = connection.cursor()  
+    # Get the last `id`
+    rows = cursor.execute(
+        "SELECT id FROM closing_points ORDER BY id DESC LIMIT 1").fetchone()
+    close_id = rows[0]+1 if rows is not None else 1
+    cursor.execute("INSERT INTO closing_points(id, trade_id, closed_price, closed_percent, closed_at) VALUES (?, ?, ?, 0, CURRENT_TIMESTAMP)", (close_id, trade_id, open_price)) 
+    connection.commit()
+    return
+
+def close_trade_percent(trade_id: int, closed_price: float, closed_percent: float) -> list:
+    """
+    This function updates the close price for a trade
+
+    :param user_id: The ID of the user that is closing the trade
+    :param trader_id: The ID of the trade to be closed
+    :param close: The price at which the trade was closed
+    """
+    connection = sqlite3.connect("database/database.db")
+    cursor = connection.cursor()  
+    rows = cursor.execute(
+        "SELECT id FROM closing_points ORDER BY id DESC LIMIT 1").fetchone()
+    close_id = rows[0]+1 if rows is not None else 1
+    cursor.execute("INSERT INTO closing_points(id, trade_id, closed_price, closed_percent, closed_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)", (close_id, trade_id, closed_price, closed_percent)) 
+    connection.commit()
+    return 
+
+def close_trade(trade_id: int, close: float, closed_at: str) -> list:
     """
     This function updates the close price for a trade
 
@@ -120,12 +155,3 @@ def get_all_trades() -> list:
     cursor = connection.cursor()
 
     return 
-
-def hard_reset() -> None:
-    """
-    This function will wipe the data from the database.
-    """
-    connection = sqlite3.connect("database/database.db")
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM trades WHERE 1")
-    cursor.execute("DELETE FROM colsing_points WHERE 1")
