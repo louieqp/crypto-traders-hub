@@ -27,6 +27,7 @@ def open_trade(user_id: int, trade_type: str, coin: str, open_price: float, targ
                    (trade_id, user_id, trade_type, coin, open_price, target, stoploss, leverage, vip))
     connection.commit()
     connection.close()
+    set_initial_close_trade(trade_id,open_price)
     return trade_id
 
 def set_initial_close_trade(trade_id: int, open_price: float) -> None:
