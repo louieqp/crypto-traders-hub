@@ -33,17 +33,18 @@ CREATE TABLE IF NOT EXISTS `closing_points` (
   `id` int(11) NOT NULL,
   `trade_id` int(11) NOT NULL,
   `closed_price` real NOT NULL,
-  `closed_percent` real NOT NULL,
+  `closed_percent` int(11) NOT NULL,
   `closed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 /* VIEWS */
 CREATE VIEW IF NOT EXISTS `trades_progress` AS
   SELECT 
-    p.trade_id, 
+    p.trade_id AS `trade_id`, 
     open, 
     close, -- NULL close indicates that the trade is still open
-    (SUM(closed_percent/100 * closed_price)-open)/open AS profit
+    100-SUM(closed_percent) AS `left_to_close`,
+    (SUM(closed_percent/100 * closed_price)-open)/open AS `profit`
   FROM trades t JOIN closing_points cp ON t.id = cp.trade_id
   GROUP BY cp.trade_id
 ;

@@ -47,7 +47,16 @@ def set_initial_close_trade(trade_id: int, open_price: float) -> None:
     connection.commit()
     return
 
-def close_trade_percent(trade_id: int, closed_price: float, closed_percent: float) -> list:
+def get_trade_left_to_close(trade_id: int):
+    # Get left to close trade
+    connection = sqlite3.connect("database/database.db")
+    cursor = connection.cursor()  
+    rows = cursor.execute(
+        "SELECT left_to_close FROM trades_progress WHERE trade_id=?", (trade_id)).fetchone()
+    left_to_close = rows[0]
+    return left_to_close
+
+def close_trade_percent(trade_id: int, closed_price: float, closed_percent: int = 100) -> int:
     """
     This function updates the close price for a trade
 
@@ -62,9 +71,11 @@ def close_trade_percent(trade_id: int, closed_price: float, closed_percent: floa
     close_id = rows[0]+1 if rows is not None else 1
     cursor.execute("INSERT INTO closing_points(id, trade_id, closed_price, closed_percent, closed_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)", (close_id, trade_id, closed_price, closed_percent)) 
     connection.commit()
-    return 
+    connection.close()
 
-def close_trade(trade_id: int, close: float, closed_at: str) -> list:
+    return get_trade_left_to_close(trade_id)
+
+def close_trade(trade_id: int, close: float) -> list:
     """
     This function updates the close price for a trade
 
@@ -75,7 +86,7 @@ def close_trade(trade_id: int, close: float, closed_at: str) -> list:
 
     connection = sqlite3.connect("database/database.db")
     cursor = connection.cursor()
-    cursor.execute("UPDATE trades SET close=?, closed_at=? WHERE id=?", (close, closed_at, trade_id))
+    cursor.execute("UPDATE trades SET close=?, closed_at=CURRENT_TIMESTAMP WHERE id=?", (close, trade_id))
     connection.commit()
     rows = cursor.execute(
         "SELECT id, type, coin, open, target, stoploss, vip FROM trades WHERE id=?", (trade_id)).fetchone()

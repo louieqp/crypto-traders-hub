@@ -85,7 +85,7 @@ class Trader(commands.Cog, name="trade"):
         name="close",
         description="Closes a position or part of it."
     )
-    async def close(self, context: Context, trade_id: int, closed_price: float, closed_percent: float):
+    async def close(self, context: Context, trade_id: int, closed_price: float, closed_percent: int = 100):
         # Input validation
         rows = await db_manager.get_user_from_trade_id(trade_id)
         if len(rows) < 1:
@@ -95,6 +95,11 @@ class Trader(commands.Cog, name="trade"):
         if context.author.id not in data['owners'] and rows[0] != context.author.id:
             raise exceptions.UserNotAllowed    
         
+        left_to_close = await db_manager.get_trade_left_to_close(trade_id)
+        if left_to_close+closed_percent > 100 and left_to_close != 100:
+            raise exceptions.InvalidClosedPercent(f"Trade {trade_id} has only {left_to_close}% left to close.")
+        # Close trade
+         
 
 
 async def setup(bot):
