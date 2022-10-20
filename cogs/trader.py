@@ -99,8 +99,9 @@ class Trader(commands.Cog, name="trade"):
         if left_to_close+closed_percent > 100 and left_to_close != 100:
             raise exceptions.InvalidClosedPercent(f"Trade {trade_id} has only {left_to_close}% left to close.")
         # Close trade
-         
-
+        new_left_to_close = await db_manager.close_trade_percent(trade_id, closed_price, closed_percent)
+        if new_left_to_close == 0:
+            await db_manager.close_trade(trade_id, closed_price)
 
 async def setup(bot):
     await bot.add_cog(Trader(bot))
