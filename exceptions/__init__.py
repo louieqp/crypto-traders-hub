@@ -82,3 +82,11 @@ class InvalidArgument(commands.CommandError):
         self.message = message
         super().__init__(self.message)
 
+class InvalidClosedPercent(commands.CommandError):
+    """
+    Thrown when user sends an invalid argument.
+    """
+    def __init__(self, message="Invalid closed percent."):
+        self.message = message
+        super().__init__(self.message)
+
