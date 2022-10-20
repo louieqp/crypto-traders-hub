@@ -9,6 +9,7 @@ asyncio = "*"
 websocket-client = "*"
 ipykernel = "*"
 requests = "*"
+aiosqlite = "*"
 
 [dev-packages]
 

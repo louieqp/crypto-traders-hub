@@ -25,8 +25,13 @@ def build_signal_message(coin: str, open_price: float, target: float, stoploss: 
         msg += chart_url
     return msg
 
+def get_closed_message(trade_id: int, closed_percent: int, totally_closed: bool):
+    msg = f"Closed {closed_percent}% of trade {trade_id}." if not totally_closed else f"Closed trade {trade_id}."
+    embed = discord.Embed(description=msg, color=c.MONEY_GREEN)
+    return embed
+
 def is_valid_coin(coin: str) -> bool:
-    if coin in c.VALID_COINS:
+    if str.upper(coin) in c.VALID_COINS:
         return True
     return False
 

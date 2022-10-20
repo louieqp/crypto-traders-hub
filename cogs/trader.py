@@ -28,6 +28,7 @@ class Trader(commands.Cog, name="trade"):
     async def open(self, context: Context, trade_type: str, coin: str, open_price: float, target: float, stoploss: float, leverage: int = 10, chart_url: str = '', vip: str = 'no'):
         trade_type = str.lower(trade_type)
         vip = str.lower(vip)
+        coin = str.upper(coin)
         await self.__validate_position(trade_type, coin, open_price, target, stoploss, vip)
 
         # Confirm signal
@@ -86,7 +87,7 @@ class Trader(commands.Cog, name="trade"):
         description="Closes a position or part of it."
     )
     async def close(self, context: Context, trade_id: int, closed_price: float, closed_percent: int = 100):
-        # Input validation
+        # Check if user is allowed to make changes
         rows = await db_manager.get_user_from_trade_id(trade_id)
         if len(rows) < 1:
             raise exceptions.IdNotFound
@@ -95,13 +96,28 @@ class Trader(commands.Cog, name="trade"):
         if context.author.id not in data['owners'] and rows[0] != context.author.id:
             raise exceptions.UserNotAllowed    
         
+        # Check if closed_percent is valid
         left_to_close = await db_manager.get_trade_left_to_close(trade_id)
-        if left_to_close+closed_percent > 100 and left_to_close != 100:
+        # Closed_percent = 100 then trade is over
+        if closed_percent == 100:
+            await db_manager.close_trade_percent(trade_id, closed_price, left_to_close)
+            await db_manager.close_trade(trade_id, closed_price)
+            embed = th.get_closed_message(trade_id, closed_percent, True)
+            await context.send(embed=embed)
+            return
+        # User wants to close more than available
+        elif closed_percent > left_to_close:
             raise exceptions.InvalidClosedPercent(f"Trade {trade_id} has only {left_to_close}% left to close.")
         # Close trade
+        # If we get here, closed percent is a correct amount
+        totally_closed = False
         new_left_to_close = await db_manager.close_trade_percent(trade_id, closed_price, closed_percent)
         if new_left_to_close == 0:
             await db_manager.close_trade(trade_id, closed_price)
+            totally_closed = True
+
+        embed = th.get_closed_message(trade_id, closed_percent, totally_closed)
+        await context.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(Trader(bot))
