@@ -40,7 +40,7 @@ def get_sent_message_notification(trade_id: int) -> discord.Embed:
         description=f"Sent. The id for this trade is {trade_id}",
         color=c.MONEY_GREEN
     )
-    embed.set_footer(text=f"For more information you can try {d.code_line('/trades')} or {d.code_line('/profile')}")
+    embed.set_footer(text=f"For more information you can try /trades or /profile")
     return embed
 
 def get_cancel_message_notification() -> discord.Embed:

@@ -5,7 +5,7 @@ from logging import exception
 
 import aiohttp
 import discord
-from discord import Interaction, app_commands
+from discord import Embed, Interaction, app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 
@@ -44,12 +44,13 @@ class Trader(commands.Cog, name="trade"):
         # Send signal
         if buttons.confirmed:
             trade_id = await db_manager.open_trade(context.author.id, trade_type, coin, open_price, target, stoploss, leverage, vip)
+            await db_manager.set_initial_close_trade(trade_id,open_price)
             if vip in c.YES_OPTIONS:
                 channel_id = c.VIP_SIGNALS_CHANNEL
             else:
                 channel_id = c.PUBLIC_SIGNALS_CHANNEL
             signal_embed = th.get_signal_message(msg, trade_type)
-            signal_embed.set_author(name=context.author.mention, icon_url=context.author.display_avatar)
+            signal_embed.set_author(name=context.author.display_name, icon_url=context.author.display_avatar)
             channel = self.bot.get_channel(channel_id)
             await channel.send(embed=signal_embed)
             embed = th.get_sent_message_notification(trade_id)
@@ -62,9 +63,9 @@ class Trader(commands.Cog, name="trade"):
             raise exceptions.InvalidArgument(f'Invalid trade type argument: {trade_type}')
 
         if trade_type == 'long':
-            self.__validate_long(open_price, target, stoploss)
+            await self.__validate_long(open_price, target, stoploss)
         else:
-            self.__validate_short(open_price, target, stoploss)
+            await self.__validate_short(open_price, target, stoploss)
 
         if not th.is_valid_coin(coin):
             raise exceptions.InvalidOrUnavailableCoin
@@ -117,6 +118,24 @@ class Trader(commands.Cog, name="trade"):
             totally_closed = True
 
         embed = th.get_closed_message(trade_id, closed_percent, totally_closed)
+        await context.send(embed=embed)
+
+    @commands.hybrid_command(
+        name="profile",
+        description="Displays a user's profile"
+    )
+    async def profile(self, context: Context, user: discord.Member = None):
+        if not user:
+            user = context.author
+    
+        _, wins, loses, total_profit, avg_profit = await db_manager.getUserProfile(user.id)
+        embed = discord.Embed(title=f"{user.display_name}", description="Record:")
+        embed.add_field("Wins" ,wins)
+        embed.add_field("Loses", loses)
+        embed.add_field("Total Profit", total_profit)
+        embed.add_field("Average Profit", avg_profit)
+        embed.set_thumbnail(url=user.display_avatar)
+
         await context.send(embed=embed)
 
 async def setup(bot):
