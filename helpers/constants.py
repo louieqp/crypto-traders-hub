@@ -1,7 +1,14 @@
+from enum import Enum
+
+class TradeType(Enum):
+    long = "long"
+    short = "short"
+
 # COLORS
 PURPLE=0x9C84EF
 MONEY_GREEN=0x85BB65
 RED=0xFF0000
+PROFILE_COLOR=0xfcba03
 
 # CHANNELS
 PUBLIC_SIGNALS_CHANNEL=1030915585829244988

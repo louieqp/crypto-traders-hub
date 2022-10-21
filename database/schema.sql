@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS `trades` (
     `user_id` varchar(20) NOT NULL,
     `type` varchar(20) NOT NULL,
     `coin` varchar(20) NOT NULL,
-    `open` real NOT NULL,
-    `close` real,
+    `open_price` real NOT NULL,
+    `close_price` real,
     `target` real NOT NULL,
     `stoploss` real NOT NULL,
     `leverage` int(11) DEFAULT 10 NOT NULL,
@@ -40,11 +40,11 @@ CREATE TABLE IF NOT EXISTS `closing_points` (
 /* VIEWS */
 CREATE VIEW IF NOT EXISTS `trades_progress` AS
   SELECT 
-    p.trade_id AS `trade_id`, 
-    open, 
-    close, -- NULL close indicates that the trade is still open, otherwise we have the price at which the trade was totally closed
-    (100-SUM(closed_percent)) AS `left_to_close`,
-    ((SUM(closed_percent/100 * closed_price)-open)/open) AS `profit`
+    cp.trade_id AS `trade_id`, 
+    t.open_price, 
+    t.close_price, -- NULL close indicates that the trade is still open, otherwise we have the price at which the trade was totally closed
+    (100-SUM(cp.closed_percent)) AS `left_to_close`,
+    ((SUM(cp.closed_percent/100 * cp.closed_price)-t.open_price)/t.open_price) AS `profit`
   FROM trades t JOIN closing_points cp ON t.id = cp.trade_id
   GROUP BY cp.trade_id
 ;
@@ -66,8 +66,8 @@ CREATE VIEW IF NOT EXISTS `user_profiles` AS
     COUNT(CASE WHEN profit > 0 THEN 1 ELSE 0 END) AS `wins`,
     COUNT(CASE WHEN profit <= 0 THEN 1 ELSE 0 END) AS `losses`,
     SUM(profit) AS `total_profit`,
-    AVG(IF(profit > 0, profit, 0)) AS `avg_profit`
+    AVG(CASE WHEN profit > 0 THEN profit ELSE 0 END) AS `avg_profit`
   FROM trades t JOIN trades_progress tp ON t.id = tp.trade_id
-  WHERE close IS NOT NULL
+  WHERE t.close_price IS NOT NULL
   GROUP BY t.user_id
 ;

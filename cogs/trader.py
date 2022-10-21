@@ -14,6 +14,7 @@ from helpers import constants as c
 from helpers import trading as th
 from helpers.modals import Confirm
 from helpers import decorators as d
+from enum import Enum
 
 import exceptions
 
@@ -25,7 +26,7 @@ class Trader(commands.Cog, name="trade"):
         name="open",
         description="Opens a position."
     )
-    async def open(self, context: Context, trade_type: str, coin: str, open_price: float, target: float, stoploss: float, leverage: int = 10, chart_url: str = '', vip: str = 'no'):
+    async def open(self, context: Context, trade_type: c.TradeType, coin: str, open_price: float, target: float, stoploss: float, leverage: int = 10, chart_url: str = '', vip: str = 'no'):
         trade_type = str.lower(trade_type)
         vip = str.lower(vip)
         coin = str.upper(coin)
@@ -128,12 +129,17 @@ class Trader(commands.Cog, name="trade"):
         if not user:
             user = context.author
     
-        _, wins, loses, total_profit, avg_profit = await db_manager.getUserProfile(user.id)
-        embed = discord.Embed(title=f"{user.display_name}", description="Record:")
-        embed.add_field("Wins" ,wins)
-        embed.add_field("Loses", loses)
-        embed.add_field("Total Profit", total_profit)
-        embed.add_field("Average Profit", avg_profit)
+        userProfile = await db_manager.getUserProfile(user.id)
+        if userProfile is None:
+            wins, loses, total_profit, avg_profit = [0]*4
+        else:
+            _, wins, loses, total_profit, avg_profit = userProfile
+        embed = discord.Embed(title=f"{user.display_name}", description="Record:", color=c.PROFILE_COLOR)
+        embed.add_field(name="Wins" ,value=wins, inline=True)
+        embed.add_field(name="Loses", value=loses, inline=True)
+        embed.add_field(name='\u200b', value='\u200b', inline=False)
+        embed.add_field(name="Total Profit", value=total_profit, inline=True)
+        embed.add_field(name="Average Profit", value=avg_profit, inline=True)
         embed.set_thumbnail(url=user.display_avatar)
 
         await context.send(embed=embed)

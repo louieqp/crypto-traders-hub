@@ -99,10 +99,10 @@ async def close_trade(trade_id: int, close: float) -> list:
     :param close: The price at which the trade was closed
     """
     async with aiosqlite.connect("database/database.db") as db:
-        await db.execute("UPDATE trades SET close=?, closed_at=CURRENT_TIMESTAMP WHERE id=?", (close, trade_id))
+        await db.execute("UPDATE trades SET close_price=?, closed_at=CURRENT_TIMESTAMP WHERE id=?", (close, trade_id))
         await db.commit()
         result = db.execute(
-            "SELECT id, type, coin, open, target, stoploss, vip FROM trades WHERE id=?", (trade_id))
+            "SELECT id, type, coin, open_price, target, stoploss, vip FROM trades WHERE id=?", (trade_id))
         async with result as cursor:
             rows = await cursor.fetchone()
             return rows
@@ -142,7 +142,7 @@ async def remove_trade(user_id: int, trade_id: int) -> list:
         await db.execute("DELETE FROM trades WHERE id=?", (trade_id))
         await db.commit()
         result = await db.execute(
-            "SELECT id, type, coin, open, target, stoploss, vip  FROM trades WHERE user_id=? AND close IS NULL", (user_id))
+            "SELECT id, type, coin, open_price, target, stoploss, vip  FROM trades WHERE user_id=? AND close IS NULL", (user_id))
         async with result as rows:
             open_trades = await rows.fetchall()
             return open_trades
