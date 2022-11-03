@@ -27,7 +27,7 @@ class Trader(commands.Cog, name="trade"):
         description="Opens a position."
     )
     async def open(self, context: Context, trade_type: c.TradeType, coin: str, open_price: float, target: float, stoploss: float, leverage: int = 10, chart_url: str = '', vip: str = 'no'):
-        trade_type = str.lower(trade_type)
+        trade_type = trade_type.value
         vip = str.lower(vip)
         coin = str.upper(coin)
         await self.__validate_position(trade_type, coin, open_price, target, stoploss, vip)
@@ -134,12 +134,50 @@ class Trader(commands.Cog, name="trade"):
             wins, loses, total_profit, avg_profit = [0]*4
         else:
             _, wins, loses, total_profit, avg_profit = userProfile
-        embed = discord.Embed(title=f"{user.display_name}", description="Record:", color=c.PROFILE_COLOR)
+        embed = discord.Embed(title=f"{user.display_name}", description="Profile", color=c.PROFILE_COLOR)
         embed.add_field(name="Wins" ,value=wins, inline=True)
         embed.add_field(name="Loses", value=loses, inline=True)
         embed.add_field(name='\u200b', value='\u200b', inline=False)
-        embed.add_field(name="Total Profit", value=total_profit, inline=True)
-        embed.add_field(name="Average Profit", value=avg_profit, inline=True)
+        embed.add_field(name="Total Profit", value=f'{total_profit:.2f}%', inline=True)
+        embed.add_field(name="Average Win", value=f'{avg_profit:.2f}%', inline=True)
+        embed.set_thumbnail(url=user.display_avatar)
+
+        await context.send(embed=embed)
+
+    @commands.hybrid_command(
+        name="trades",
+        description="Displays a user's trades list"
+    )
+    async def trades(self, context: Context, user: discord.Member = None):
+        if not user:
+            user = context.author
+    
+        trades = await db_manager.getUserTrades(user.id)
+        open_trades_section = []
+        closed_trades_section = []
+        
+        for trade in trades:
+            trade_id, coin, trade_type, profit, close_price = trade
+            trade_detail = f'**Trade id**: {trade_id}\n'
+            trade_detail += f'> Coin: {str.upper(coin)}\n'
+            trade_detail += f'> Type: {trade_type}\n'
+            trade_detail += f'> Profit: {profit:.2f}%'
+            if close_price is None:
+                open_trades_section.append(trade_detail)
+            else:
+                closed_trades_section.append(trade_detail)
+
+        if trades is None:
+            open_trades_section = ['No trades available']
+            closed_trades_section = ['No trades available']
+        if len(open_trades_section) == 0:
+            open_trades_section = ['No trades available']
+        if len(closed_trades_section) == 0:
+            closed_trades_section = ['No trades available']
+
+        embed = discord.Embed(title=f"{user.display_name}", color=c.PROFILE_COLOR)
+        embed.add_field(name="Open Trades" ,value='\n'.join(open_trades_section), inline=False)
+        embed.add_field(name="Closed Trades" ,value='\n'.join(closed_trades_section), inline=False)
         embed.set_thumbnail(url=user.display_avatar)
 
         await context.send(embed=embed)
