@@ -20,7 +20,7 @@ def build_signal_message(coin: str, open_price: float, target: float, stoploss: 
     msg += d.bold('Leverage: ') + f'cross {leverage}x\n\n'
     risk = abs(stoploss-open_price)/open_price * 100
     gain = abs(target-open_price)/open_price * 100
-    msg += f"Risking {risk:.2f}% to gain {gain:.2f}% on this trade (x {leverage})" + '\n\n'
+    msg += f"Risking {risk:.2f}% to gain {gain:.2f}% on this trade (x{leverage})" + '\n\n'
     if chart_url != '':
         msg += chart_url
     return msg
